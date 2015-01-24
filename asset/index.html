@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+  <head>
+    <title>apf</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <!-- <script src="http://flightjs.github.io/release/latest/flight.min.js"></script> -->
+    <script src="/socket.io.js"></script>
+    <script src="/app.js"></script>
+  </head>
+  <body>
+    <form id='loginScreen'>
+      <input type='text' name='user' id='user' placeholder='username'/>
+      <input type='password' name='password' id='password' placeholder='password' />
+      <input type='submit' id='login-btn' value='Login'>
+    </form>
+    <div id='onlyauthorised'>
+      <h1>Hi <span id='username'></span>!</h1>
+
+      <h3>This is your IoT.</h3>
+
+      ...
+    </div>
+  </body>
+</html>

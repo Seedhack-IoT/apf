@@ -22,9 +22,9 @@ func init() {
 	userStore = make(map[string][]byte)
 }
 
-func main() {
-	address := ":2200"
+func StartSSH(address string) {
 	reader := bufio.NewReader(os.Stdin)
+
 	// Create SSH public key authentication method, with delayed validation.
 	config := &ssh.ServerConfig{
 		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
@@ -50,9 +50,9 @@ func main() {
 	}
 
 	// You can generate a keypair with 'ssh-keygen -t rsa'
-	privateBytes, err := ioutil.ReadFile("key")
+	privateBytes, err := ioutil.ReadFile("keys/key")
 	if err != nil {
-		log.Fatal("Failed to load private key (./key)")
+		log.Fatal("Failed to load private key (./key/key)")
 	}
 
 	private, err := ssh.ParsePrivateKey(privateBytes)
@@ -100,20 +100,21 @@ func handleRequests(requests <-chan *ssh.Request) {
 func handleChannels(chans <-chan ssh.NewChannel) {
 	// Service the incoming Channel channel.
 	for newChannel := range chans {
-		if t := newChannel.ChannelType(); t != "session" {
+		if t := newChannel.ChannelType(); t == "session" {
+			// for shell debugging
+			channel, requests, err := newChannel.Accept()
+			if err != nil {
+				log.Printf("Could not accept channel (%s)", err)
+				continue
+			}
+			handleChannel(channel, requests)
+		} else if t == DataChannel {
+			// for actual connections
+		} else {
 			newChannel.Reject(ssh.UnknownChannelType, fmt.Sprintf("unknown channel type: %s", t))
 			continue
 		}
 
-		// At this point, we have the opportunity to reject the client's
-		// request for another logical connection
-		channel, requests, err := newChannel.Accept()
-		if err != nil {
-			log.Printf("Could not accept channel (%s)", err)
-			continue
-		}
-
-		handleChannel(channel, requests)
 	}
 }
 
