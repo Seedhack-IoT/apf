@@ -27,6 +27,7 @@ func (d *Device) Action(name string, data string) {
 
 func (d *Device) SetOffline() {
 	d.channel = nil
+	d.Disconnected()
 }
 
 func (d *Device) AddReading(sensor string, data string) {
@@ -48,7 +49,12 @@ func (d *Device) PushToWeb() {
 		"name":    d.Name,
 		"actions": d.Actions,
 		"sensors": d.Sensors,
+		"active":  d.channel != nil,
 	})
+}
+
+func (d *Device) Disconnected() {
+	ioServer.BroadcastTo("authorised", "device_offline", d.Uuid)
 }
 
 type Sensor struct {
@@ -60,7 +66,9 @@ func GetOrCreateDevice(uuid string) *Device {
 	if d, ok := devices[uuid]; ok {
 		return d
 	}
-	return &Device{Uuid: uuid}
+	d := &Device{Uuid: uuid}
+	devices[uuid] = d
+	return d
 }
 
 func GetDevice(uuid string) *Device {
