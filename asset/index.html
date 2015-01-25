@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!doctype html>
 <html>
   <head>
@@ -22,3 +23,50 @@
     </div>
   </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en" ng-app="App">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Something to do with IoT</title>
+
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/loading-bar.min.css" rel="stylesheet">
+        <link href="css/pnotify.custom.min.css" rel="stylesheet">
+    </head>	
+    <body ng-controller="MainCtrl">
+    <div class="container">
+      <form class="form-signin" ng-hide="loggedIn">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <label for="inputUser" class="sr-only">User name</label>
+        <input type="text" class="form-control" placeholder="User name" autofocus="" autocomplete="off" ng-model="username">
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" class="form-control" placeholder="Password" required="" autocomplete="off" ng-model="password">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" value="remember-me"> Remember me
+          </label>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" ng-click="login()" type="submit">Sign in</button>
+      </form>
+
+    </div>
+
+    <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="js/angular.js"></script>
+    <script type="text/javascript" src="js/pnotify.custom.min.js"></script>
+    <script type="text/javascript" src="js/pnotify.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/ui-bootstrap-tpls-0.12.0.min.js"></script>
+    <script type="text/javascript" src="js/loading-bar.min.js"></script>
+    <script type="text/javascript" src="js/socket.io.js"></script>
+    <script type="text/javascript" src="js/socket.min.js"></script>
+    <script type="text/javascript" src="js/js.js"></script>
+    </body>
+</html>	
+>>>>>>> fc15c1f5a96b89179e2e40bc98b864dab976ae37
