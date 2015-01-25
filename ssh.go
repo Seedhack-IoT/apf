@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"os"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
@@ -48,12 +47,6 @@ func StartSSH(address string) {
 			log.Printf("Access denied for user %s\n", user)
 			return nil, fmt.Errorf("Access denied.")
 		},
-		PasswordCallback: func(conn ssh.ConnMetadata, password []byte) (*ssh.Permissions, error) {
-			if conn.User() == "some_user" {
-				return nil, nil
-			}
-			return nil, fmt.Errorf("wrong password")
-		},
 	}
 
 	// You can generate a keypair with 'ssh-keygen -t rsa'
@@ -91,11 +84,13 @@ func StartSSH(address string) {
 			continue
 		}
 
+		GetOrCreateDevice(sshConn.User())
+
 		log.Printf("New SSH connection from %s (%s)", sshConn.RemoteAddr(), sshConn.ClientVersion())
 		// Discard all global out-of-band Requests
 		go handleRequests(reqs)
 		// Accept all channels
-		go handleChannels(chans)
+		go handleChannels(chans, sshConn.User())
 	}
 }
 
@@ -105,7 +100,7 @@ func handleRequests(requests <-chan *ssh.Request) {
 	}
 }
 
-func handleChannels(chans <-chan ssh.NewChannel) {
+func handleChannels(chans <-chan ssh.NewChannel, user string) {
 	// Service the incoming Channel channel.
 	for newChannel := range chans {
 		if t := newChannel.ChannelType(); t == "session" {
@@ -124,7 +119,7 @@ func handleChannels(chans <-chan ssh.NewChannel) {
 				log.Printf("Error accepting custom channel (%s)", err)
 				continue
 			}
-			customChannel(channel, requests)
+			customChannel(channel, requests, user)
 		} else {
 			newChannel.Reject(ssh.UnknownChannelType, fmt.Sprintf("unknown channel type: %s", t))
 			continue
@@ -132,37 +127,44 @@ func handleChannels(chans <-chan ssh.NewChannel) {
 	}
 }
 
-func customChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
+func customChannel(channel ssh.Channel, requests <-chan *ssh.Request, user string) {
 	go func(in <-chan *ssh.Request) {
 		for req := range in {
 			log.Println("Handling a request...")
 			req.Reply(false, nil)
 		}
 	}(requests)
+	device := GetOrCreateDevice(user)
+	device.channel = channel
+	device.Uuid = user
 	reader := bufio.NewReader(channel)
 	go func() {
-		defer channel.Close()
+		defer func() {
+			device.SetOffline()
+			channel.Close()
+		}()
 		for {
 			line, err := reader.ReadString('\n')
 			if err != nil {
 				break
 			}
-			fmt.Printf("INPUT: %s\n", line)
-		}
-	}()
-
-	// send big chunk of data
-	go func() {
-		for {
-			line, err := termR.ReadString('\n')
-			if err != nil || len(line) == 0 {
-				return
-			}
-			fmt.Printf("Sending \"%s\"....", line)
-			nr, err := channel.Write([]byte(line))
-			fmt.Printf("Sent %d bytes.\n", nr)
+			// do some request routing
+			req := make(map[string]interface{})
+			err = json.Unmarshal(&req, []byte(line))
 			if err != nil {
-				fmt.Printf("Sending error (%s)\n", err)
+				log.Printf("Cannot unmarshal json on request.")
+				continue
+			}
+			if path, ok := req["path"]; ok {
+				pstr := path.(string)
+				switch pstr {
+				case "client":
+					device.Name = req["name"].(string)
+					device.Actions = req["actions"].([]string)
+					device.Sensors = req["sensors"].([]string)
+				case "reading":
+				case "whatever":
+				}
 			}
 		}
 	}()
@@ -186,7 +188,9 @@ func handleChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 
 	reader := bufio.NewReader(channel)
 	go func() {
-		defer channel.Close()
+		defer func() {
+			channel.Close()
+		}()
 		for {
 			line, err := reader.ReadString('\n')
 			if err != nil {
