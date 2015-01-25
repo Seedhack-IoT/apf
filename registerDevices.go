@@ -22,7 +22,9 @@ func (d *Device) Action(name string) {
 	js, _ := json.Marshal(map[string]string{
 		"action": name,
 	})
-	d.channel.Write(js)
+	js = append(js, '\n')
+	n, err := d.channel.Write(js)
+	log.Printf("Writing action %s. Wrote %d bytes with err %s", name, n, err)
 }
 
 func (d *Device) SetOffline() {
@@ -79,6 +81,7 @@ func (s *Sensor) checkConditionals(newval string) {
 				log.Printf("Conditional action fired but actuator %s not found.", c.actuator)
 				continue
 			}
+			log.Printf("Performing action...")
 			a.Action(c.action)
 		}
 	}

@@ -22,8 +22,11 @@ var app = angular.module('App', [
 	  return socketFactory();
 	});
 
+var hack;
+
 var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter, socket, notificationService) {
 
+	hack = socket;
 	$scope.loggedIn = false;
 	$scope.devices = {};
 	$scope.login = function(){
