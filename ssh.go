@@ -31,9 +31,6 @@ func StartSSH(address string) {
 		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
 			user := conn.User()
 			log.Printf("Authentication request from user %s.", user)
-			if conn.User() == "mani" {
-				return nil, nil
-			}
 			mk := key.Marshal()
 			if pk, ok := userStore[user]; ok != false {
 				if string(pk) == string(mk) {
@@ -47,16 +44,8 @@ func StartSSH(address string) {
 					userStore[user] = mk
 					return nil, nil
 				}
-				// await on terminal for input:0
-				//				fmt.Printf("Accept connection from user %s? y/n: ", user)
-				//				input, _ := reader.ReadString('\n')
-				//				if len(input) >= 1 && input[0] == 'y' {
-				//					userStore[user] = mk
-				//					return nil, nil
-				//				}
 			}
 			log.Printf("Access denied for user %s\n", user)
-			// otherwise reject
 			return nil, fmt.Errorf("Access denied.")
 		},
 		PasswordCallback: func(conn ssh.ConnMetadata, password []byte) (*ssh.Permissions, error) {
@@ -163,15 +152,6 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 	}()
 
 	// send big chunk of data
-	/*
-		buf := new(bytes.Buffer)
-		for i := 0; i < 5000; i++ {
-			buf.WriteString("1234567890abcdefghijklmnopqrstuvwxyz")
-		}
-		n, err := channel.Write(buf.Bytes())
-		log.Printf("Wrote %d bytes with error %s.", n, err)
-	*/
-	termR := bufio.NewReader(os.Stdin)
 	go func() {
 		for {
 			line, err := termR.ReadString('\n')
@@ -190,12 +170,6 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 
 // in this function we have an SSH connection.
 func handleChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
-	// prepare teardown function
-	//	close := func() {
-	//		channel.Close()
-	//		log.Printf("Session closed")
-	//	}
-
 	go func(in <-chan *ssh.Request) {
 		for req := range in {
 			ok := false
