@@ -130,7 +130,7 @@ func main() {
 		if err != nil {
 			log.Printf("Error on reading stdin (%s)", err)
 		}
-		b, err := channel.Write([]byte(line))
+		_, err = channel.Write([]byte(line))
 		if err != nil {
 			log.Printf("Error writing on channel (%s).", err)
 		}

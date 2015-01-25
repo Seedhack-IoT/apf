@@ -34,6 +34,14 @@ socket.on("boolQuestion", function(id, message) {
   });
 });
 
+socket.on("device_data", function(device) {
+  console.log("event:device_data", device);
+});
+
+socket.on("device_reading", function(uuid, sensor, data) {
+  console.log("event:device_reading", uuid, sensor, data);
+});
+
 function init() {
   console.log("initialised");
 

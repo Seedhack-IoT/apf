@@ -128,6 +128,19 @@ func handleChannels(chans <-chan ssh.NewChannel, user string) {
 	}
 }
 
+type clientRequest struct {
+	Name    string
+	Actions []string
+	Sensors map[string]*Sensor
+}
+
+type dataRequest struct {
+	Type    string
+	Value   string
+	Error   bool
+	Message string
+}
+
 func customChannel(channel ssh.Channel, requests <-chan *ssh.Request, user string) {
 	go func(in <-chan *ssh.Request) {
 		for req := range in {
@@ -145,27 +158,37 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request, user strin
 			channel.Close()
 		}()
 		for {
-			line, err := reader.ReadString('\n')
+			path, err := reader.ReadString(' ')
 			if err != nil {
 				break
 			}
+			path = strings.TrimSpace(path)
+			line, err := reader.ReadString('\n')
+
+			log.Printf("Request %#v from %s: %v", path, device.Uuid, line)
 			// do some request routing
-			req := make(map[string]interface{})
-			err = json.Unmarshal([]byte(line), &req)
-			if err != nil {
-				log.Printf("Cannot unmarshal json on request.")
-				continue
-			}
-			if path, ok := req["path"]; ok {
-				pstr := path.(string)
-				switch pstr {
-				case "client":
-					device.Name = req["name"].(string)
-					device.Actions = req["actions"].([]string)
-					device.Sensors = req["actions"].(map[string]*Sensor)
-				case "reading":
-				case "whatever":
+
+			switch path {
+			case "client":
+				log.Println("Got client request.")
+				var req clientRequest
+				err = json.Unmarshal([]byte(line), &req)
+				if err != nil {
+					log.Printf("Error parsing json %s", err)
 				}
+				device.Name = req.Name
+				device.Sensors = req.Sensors
+				device.Actions = req.Actions
+				device.PushToWeb()
+			case "read_data":
+				log.Println("got read_data request")
+				var req dataRequest
+				err = json.Unmarshal([]byte(line), &req)
+				if err != nil {
+					log.Printf("Error parsing json %s", err)
+				}
+				device.AddReading(req.Type, req.Value)
+			case "whatever":
 			}
 		}
 	}()

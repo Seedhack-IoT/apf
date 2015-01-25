@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -13,7 +14,7 @@ type Device struct {
 	Name    string
 	Actions []string
 	Sensors map[string]*Sensor
-	channel ssh.Channel
+	channel ssh.Channel `json:"-"`
 }
 
 func (d *Device) Action(name string, data string) {
@@ -28,15 +29,31 @@ func (d *Device) SetOffline() {
 	d.channel = nil
 }
 
-func (d *Device) AddReading(sensor string, data interface{}) {
+func (d *Device) AddReading(sensor string, data string) {
 	if s, ok := d.Sensors[sensor]; ok {
-		d.Sensors[sensor].Readings = append(s.Readings, data)
+		s.Readings = append(s.Readings, data)
+	} else {
+		d.Sensors[sensor] = &Sensor{Name: sensor, Readings: []string{data}}
 	}
+
+	// broadcast the new reading
+	log.Println("Broadcasting...")
+	ioServer.BroadcastTo("authorised", "sensor_reading", d.Uuid, sensor, data)
+}
+
+func (d *Device) PushToWeb() {
+	log.Println("Pushing to web!")
+	ioServer.BroadcastTo("authorised", "device_data", map[string]interface{}{
+		"uuid":    d.Uuid,
+		"name":    d.Name,
+		"actions": d.Actions,
+		"sensors": d.Sensors,
+	})
 }
 
 type Sensor struct {
 	Name     string
-	Readings []interface{}
+	Readings []string
 }
 
 func GetOrCreateDevice(uuid string) *Device {

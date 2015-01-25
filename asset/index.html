@@ -16,72 +16,9 @@
       <input type='submit' id='login-btn' value='Login'>
     </form>
     <div id='onlyauthorised'>
+      <div class='row'><h1>Hi <span id='username'></span>!</h1></div>
 
       <h3>This is your IoT.</h3>
     </div>
   </body>
-</html>
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="">
-  <meta name="author" content="">
-
-  <title>IoT something</title>
-  <link href="css/bootstrap.min.css" rel="stylesheet">
-  <link href="css/metro-bootstrap.min.css" rel="stylesheet">
-
-  <link href="style.css" rel="stylesheet">
-  <script src="js/ie-emulation-modes-warning.js"></script>
-</head>
-
-<body>
-  <div class="container">
-    <div class="row login_page">
-      <form class="form-signin" id="slick-login" onsubmit="login()">
-        <label for="inputEmail" class="sr-only">Email address</label>
-        <input type="text" id="login_user" class="form-control" placeholder="User Name" required autofocus>
-        <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" id="login_pass" class="form-control" placeholder="Password" required>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-      </form>
-    </div>
-
-
-    <div class="row recipes_page" style="display:none">
-      <div class='row'><h1>Hi <span id='username'></span>!</h1></div>
-      <!-- <div class="row recipes_page"> -->
-      <div class="col-md-12" id="recipe_list">
-        <!-- <div class="tile tile-large tile-purple">
-        <h3 class="tile-text">Something else</h3>
-        <br/>
-        <p>Stuff</p>
-      </div>
-      <div class="tile tile-large tile-purple">
-      <h3 class="tile-text">Something else</h3>
-    </div>
-    <div class="tile tile-large tile-purple">
-    <h3 class="tile-text">Something else</h3>
-  </div>
-  <div class="tile tile-large tile-purple">
-  <h3 class="tile-text">Something else</h3>
-</div>
-<div class="tile tile-large tile-purple">
-<h3 class="tile-text">Something else</h3>
-</div> -->
-</div>
-</div>
-
-</div> <!-- /container -->
-<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-<script src="js/bootstrap.js"></script>
-<script src="/socket.io/socket.io.js"></script>
-<script src="/main.js"></script>
-
-</body>
 </html>
