@@ -14,13 +14,13 @@ type Device struct {
 	Name    string
 	Actions []string
 	Sensors map[string]*Sensor
+
 	channel ssh.Channel `json:"-"`
 }
 
-func (d *Device) Action(name string, data string) {
+func (d *Device) Action(name string) {
 	js, _ := json.Marshal(map[string]string{
 		"action": name,
-		"data":   data,
 	})
 	d.channel.Write(js)
 }
@@ -33,6 +33,7 @@ func (d *Device) SetOffline() {
 func (d *Device) AddReading(sensor string, data string) {
 	if s, ok := d.Sensors[sensor]; ok {
 		s.Readings = append(s.Readings, data)
+		s.checkConditionals(data)
 	} else {
 		d.Sensors[sensor] = &Sensor{Name: sensor, Readings: []string{data}}
 	}
@@ -57,9 +58,34 @@ func (d *Device) Disconnected() {
 	ioServer.BroadcastTo("authorised", "device_offline", d.Uuid)
 }
 
+type cond struct {
+	value    string
+	actuator string
+	action   string
+}
+
 type Sensor struct {
 	Name     string
 	Readings []string
+
+	conditional []*cond `json:"-"`
+}
+
+func (s *Sensor) checkConditionals(newval string) {
+	for _, c := range s.conditional {
+		if c.value == newval {
+			a := GetDevice(c.actuator)
+			if a == nil {
+				log.Printf("Conditional action fired but actuator %s not found.", c.actuator)
+				continue
+			}
+			a.Action(c.action)
+		}
+	}
+}
+
+func (s *Sensor) addConditional(value, actuator, action string) {
+	s.conditional = append(s.conditional, &cond{value, actuator, action})
 }
 
 func GetOrCreateDevice(uuid string) *Device {
