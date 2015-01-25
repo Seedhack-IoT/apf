@@ -15,6 +15,26 @@
     </head>
     <body ng-controller="MainCtrl">
     <div class="container">
+        <div class="row" ng-show="loggedIn">
+            <button class="btn btn-default" ng-click="add(0)">Add 1</button>
+            <button class="btn btn-default" ng-click="add(1)">Add 2</button>
+            <button class="btn btn-default" ng-click="add(2)">Add 3</button>
+            <button class="btn btn-default" ng-click="update(0)">edit 1</button>
+            <button class="btn btn-default" ng-click="update(1)">edit 2</button>
+            <button class="btn btn-default" ng-click="update(2)">edit 3</button>
+        </div>
+        <div class="row" id="freewall" ng-show="loggedIn">
+            <div ng-repeat="s in sensors">
+                <div class='cell' style='width:300px; height: 300px; background-color:rgb(142, 68, 173)' data-handle=".handle">
+                    <div class='cover'>
+                        <h1 class='handle'>{{s.title}}</h1>
+                        <small am-time-ago="s.valueTime"></small>
+                        <p class='handle'>{{s.value}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
       <form class="form-signin" ng-hide="loggedIn">
         <h2 class="form-signin-heading">Please sign in</h2>
         <label for="inputUser" class="sr-only">User name</label>
@@ -32,7 +52,10 @@
     </div>
 
     <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="js/freewall.js"></script>
     <script type="text/javascript" src="js/angular.js"></script>
+    <script type="text/javascript" src="js/moment.min.js"></script>
+    <script type="text/javascript" src="js/angular-moment.js"></script>
     <script type="text/javascript" src="js/pnotify.custom.min.js"></script>
     <script type="text/javascript" src="js/pnotify.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>

@@ -2,6 +2,7 @@ var app = angular.module('App', [
 	'angular-loading-bar',
 	'ui.bootstrap',
 	'ui.notify',
+	'angularMoment',
 	'btford.socket-io']).config(['cfpLoadingBarProvider',
 	    function(cfpLoadingBarProvider) {
 	        cfpLoadingBarProvider.includeSpinner = true;
@@ -12,7 +13,10 @@ var app = angular.module('App', [
 
 
 
-	}]);
+	}]).constant('angularMomentConfig', {
+    preprocess: 'utc', // optional
+    timezone: 'Europe/London' // optional
+});
 
 	app.factory('socket', function (socketFactory) {
 	  return socketFactory();
@@ -20,24 +24,58 @@ var app = angular.module('App', [
 
 var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter, socket, notificationService) {
 
-	$scope.loggedIn = false;
+	$scope.loggedIn = true;
 	$scope.sensors = [];
 	$scope.login = function(){
 		socket.emit("auth", $scope.username, $scope.password);
 
 	}
 
-	$scope.add = function(){
-		var sens={
+	$scope.add = function(i){
+		var senses=[
+		{
 			"title":"One sensor",
 			"uuid":"blablabla"
+		},{
+			"title":"Two sensor",
+			"uuid":"blebleble"
+		},{
+			"title":"Green tree sensor",
+			"uuid":"bliblibli"
 		}
+		];
 
-		var found = $scope.sensors.some(function (sens) {
-		    return el.uuid === uuid;
+		var found = $scope.sensors.some(function (el) {
+		    return el.uuid === senses[i].uuid;
 		  });
 		if (!found)
-			$scope.sensors.push(sens);
+			$scope.sensors.push(senses[i]);
+		$timeout(function(){
+			wall.refresh();
+		});
+	}
+
+	$scope.update = function(i){
+		var updates=[
+		{
+			"uuid":"blablabla",
+			"value":Math.random()*102933214
+		},{
+			"uuid":"blebleble",
+			"value":Math.random()*102933214
+		},{
+			"uuid":"bliblibli",
+			"value":Math.random()*102933214
+		}];
+
+		var val = $.grep( $scope.sensors, function( el ) {
+		    return el.uuid===updates[i].uuid;
+		});
+		if (val.length==1){
+			val[0]["valueTime"]=new Date();
+			val[0]["value"]=updates[i].value;
+		}
+
 	}
 	socket.on("authentication", function(yes) {
 /*		notificationService.notify({
@@ -91,3 +129,21 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 	});
 
 })
+
+var wall = new freewall("#freewall");
+wall.reset({
+	draggable: true,
+	selector: '.cell',
+	animate: true,
+	cellW: 150,
+	cellH: 150,
+	onResize: function() {
+		wall.refresh();
+	},
+	onBlockMove: function() {
+		console.log(this);
+	}
+});
+wall.fitWidth();
+// for scroll bar appear;
+$(window).trigger("resize");
