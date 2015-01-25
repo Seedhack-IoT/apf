@@ -64,6 +64,13 @@ func StartHTTP(address string) {
 			auth = true
 			so.Emit("authentication", true)
 			so.Join("authorised")
+
+			log.Printf("Pushing all devices to %s. Len devices: %d", user, len(devices))
+			// push all current devices and all their data
+			for _, device := range devices {
+				device.PushToWeb()
+			}
+
 			return
 		})
 
