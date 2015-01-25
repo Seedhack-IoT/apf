@@ -3,6 +3,7 @@ var app = angular.module('App', [
 	'ui.bootstrap',
 	'ui.notify',
 	'angularMoment',
+	'ui.select2',
 	'btford.socket-io']).config(['cfpLoadingBarProvider',
 	    function(cfpLoadingBarProvider) {
 	        cfpLoadingBarProvider.includeSpinner = true;
@@ -27,10 +28,20 @@ var hack;
 var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter, socket, notificationService) {
 
 	hack = socket;
-	$scope.loggedIn = false;
+	$scope.loggedIn = true;
 	$scope.devices = {};
+	$scope.iftttSensor = null;
 	$scope.login = function(){
 		socket.emit("auth", $scope.username, $scope.password);
+	}
+
+	$scope.setIfttt = function(s){
+		if (s===null){
+			notificationService.success('IFTTT action saved');
+
+		}
+		$scope.iftttSensor = s;
+
 	}
 
 	$scope.addDevice = function(device){
@@ -51,7 +62,7 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 	$scope.updateDevice = function(uuid, sensor, data){
 		console.log("event:sensor_reading", uuid, sensor, data);
 		console.log($scope.devices);
-		$scope.devices[uuid].sensors[sensor].valu = data;
+		$scope.devices[uuid].sensors[sensor].value = data;
 		$scope.devices[uuid].sensors[sensor].valueTime = new Date();
 		// var val = $.grep( $scope.devices, function( el ) {
 		//     return el.uuid===update.uuid;

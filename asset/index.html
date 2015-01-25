@@ -12,6 +12,7 @@
         <link href="css/bootstrap.min.css" rel="stylesheet">
         <link href="css/loading-bar.min.css" rel="stylesheet">
         <link href="css/pnotify.custom.min.css" rel="stylesheet">
+        <link href="css/select2.min.css" rel="stylesheet">
         <link href="css/css.css" rel="stylesheet">
     </head>
     <body ng-controller="MainCtrl">
@@ -26,6 +27,7 @@
             <button class="btn btn-default" ng-click="changeDeviceStatus('blebleble',true)">Activate 2</button>
             <button class="btn btn-default" ng-click="changeDeviceStatus('blebleble',false)">Deactivate 2</button>
         </div>
+
         <div class="row" ng-show="loggedIn">
             <div class="device col-md-12" ng-repeat="(uuid, device) in devices">
             <h1>{{device.name}}</h1>
@@ -34,7 +36,20 @@
                         <div class='cover'>
                             <h1 class='handle'>{{s.name}}</h1>
                             <small am-time-ago="s.valueTime"></small>
-                            <p class='handle'>{{s.valu}}</p>
+                            <p class='handle'>{{s.value}}</p>
+                            <button class="btn btn-sm btn-info" ng-hide="iftttSensor==s" ng-disabled="!device.active" ng-click="setIfttt(s)">IF this</button>
+                            <div ng-show="iftttSensor==s">
+                                IF:<br/>
+                                Value is
+                                <input class="form-control iftVal" type="text" ng-model="iftttValue" placeholder="Value"/>
+                                Then do action:
+                                <select ui-select2 class="form-control iftAction" ng-model="ifSensor" data-placeholder="Pick a thing">
+                                    <optgroup ng-repeat="(uuid, device) in devices" label="{{device.name}}">
+                                        <option ng-repeat="a in device.actions" value="123">{{a}}</option>
+                                    </optgroup>
+                                </select>
+                                <input type="submit" class="btn btn-md btn-success" ng-click="setIfttt(null)" value="Save"/>
+                            </div>
                         </div>
                     </div>
                     <div class="action col-md-3" ng-class="{'inactive-stuff':!device.active}" ng-repeat="a in device.actions">
@@ -64,10 +79,11 @@
     </div>
 
     <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
-    <script type="text/javascript" src="js/freewall.js"></script>
+    <script type="text/javascript" src="js/select2.full.min.js"></script>
     <script type="text/javascript" src="js/angular.js"></script>
     <script type="text/javascript" src="js/moment.min.js"></script>
     <script type="text/javascript" src="js/angular-moment.js"></script>
+    <script type="text/javascript" src="js/select2.js"></script>
     <script type="text/javascript" src="js/pnotify.custom.min.js"></script>
     <script type="text/javascript" src="js/pnotify.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
