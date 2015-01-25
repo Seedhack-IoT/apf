@@ -27,15 +27,22 @@ socket.on("authentication", function(yes) {
   }
 });
 
+socket.on("boolQuestion", function(id, message) {
+  console.log("event:boolQuestion", id, message);
+  ui.boolQuestion(message, function(answer) {
+    socket.emit("boolAnswer", id, answer);
+  });
+});
+
 function init() {
   console.log("initialised");
 
   var loginScreen = $("#loginScreen");
   loginScreen.submit(function(e) {
-    var data = loginScreen.serializeObject();
-    console.log("emitting auth with", data);
-    socket.emit("auth", data["user"], data["password"]);
     e.preventDefault();
+    var data = loginScreen.serializeObject();
+    socket.emit("auth", data["user"], data["password"]);
+    loginScreen.css('border', '0 none');
     return false;
   });
 

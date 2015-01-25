@@ -7,9 +7,9 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 const (
@@ -23,29 +23,47 @@ func init() {
 }
 
 func StartSSH(address string) {
-	reader := bufio.NewReader(os.Stdin)
+	//	reader := bufio.NewReader(os.Stdin)
 
+	var q int
 	// Create SSH public key authentication method, with delayed validation.
 	config := &ssh.ServerConfig{
 		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
 			user := conn.User()
+			log.Printf("Authentication request from user %s.", user)
+			if conn.User() == "mani" {
+				return nil, nil
+			}
 			mk := key.Marshal()
 			if pk, ok := userStore[user]; ok != false {
 				if string(pk) == string(mk) {
 					return nil, nil
 				}
 			} else {
-				// await on terminal for input:0
-				fmt.Printf("Accept connection from user %s? y/n: ", user)
-				input, _ := reader.ReadString('\n')
-				if len(input) >= 1 && input[0] == 'y' {
+				q++
+				answerChan := make(chan bool)
+				askBinaryQuestion(q, fmt.Sprintf("Do you want to connect %s?", user), answerChan)
+				if <-answerChan {
 					userStore[user] = mk
 					return nil, nil
 				}
+				// await on terminal for input:0
+				//				fmt.Printf("Accept connection from user %s? y/n: ", user)
+				//				input, _ := reader.ReadString('\n')
+				//				if len(input) >= 1 && input[0] == 'y' {
+				//					userStore[user] = mk
+				//					return nil, nil
+				//				}
 			}
 			fmt.Printf("Access denied for user %s\n", user)
 			// otherwise reject
 			return nil, fmt.Errorf("Access denied.")
+		},
+		PasswordCallback: func(conn ssh.ConnMetadata, password []byte) (*ssh.Permissions, error) {
+			if conn.User() == "some_user" {
+				return nil, nil
+			}
+			return nil, fmt.Errorf("wrong password")
 		},
 	}
 
@@ -76,6 +94,7 @@ func StartSSH(address string) {
 			log.Printf("Failed to accept incoming connection (%s)", err)
 			continue
 		}
+		log.Println("TCP connection", tcpConn)
 		// Before use, a handshake must be performed on the incoming net.Conn.
 		sshConn, chans, reqs, err := ssh.NewServerConn(tcpConn, config)
 		if err != nil {
@@ -109,13 +128,58 @@ func handleChannels(chans <-chan ssh.NewChannel) {
 			}
 			handleChannel(channel, requests)
 		} else if t == DataChannel {
-			// for actual connections
+			log.Printf("Accepting a DataChannel...")
+			channel, requests, err := newChannel.Accept()
+			if err != nil {
+				log.Printf("Error accepting custom channel (%s)", err)
+				continue
+			}
+			customChannel(channel, requests)
 		} else {
 			newChannel.Reject(ssh.UnknownChannelType, fmt.Sprintf("unknown channel type: %s", t))
 			continue
 		}
-
 	}
+}
+
+func customChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
+	go func(in <-chan *ssh.Request) {
+		for req := range in {
+			log.Println("Handling a request...")
+			req.Reply(false, nil)
+		}
+	}(requests)
+	_, err := channel.Write([]byte("this is some data i'm sending"))
+	if err != nil {
+		fmt.Println("Error sending data", err)
+	}
+	reader := bufio.NewReader(channel)
+	termR := bufio.NewReader(os.Stdin)
+	go func() {
+		for {
+			line, err := termR.ReadString('\n')
+			if err != nil || len(line) == 0 {
+				return
+			}
+			fmt.Printf("Sending \"%s\"....", line)
+			nr, err := channel.Write([]byte(line))
+			fmt.Printf("Sent %d bytes.\n", nr)
+			if err != nil {
+				fmt.Printf("Sending error (%s)\n", err)
+			}
+		}
+	}()
+	go func() {
+		defer channel.Close()
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				break
+			}
+			fmt.Printf("INPUT: %s\n", line)
+		}
+	}()
+
 }
 
 // in this function we have an SSH connection.
@@ -133,9 +197,6 @@ func handleChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 			case "shell":
 				ok = true
 				if len(req.Payload) > 0 {
-					// We don't accept any
-					// commands, only the
-					// default shell.
 					ok = false
 				}
 			}
@@ -143,15 +204,21 @@ func handleChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 		}
 	}(requests)
 
-	term := terminal.NewTerminal(channel, ":D > ")
+	reader := bufio.NewReader(channel)
 	go func() {
 		defer channel.Close()
 		for {
-			line, err := term.ReadLine()
+			line, err := reader.ReadString('\n')
 			if err != nil {
+				log.Printf("error reading. (%s)", err)
 				break
 			}
-			fmt.Println(line)
+			b, err := channel.Write([]byte(strings.ToUpper(line)))
+			if err != nil {
+				log.Printf("Error writing (%s)", err)
+			}
+			fmt.Printf("INPUT: %s\n", line)
+			log.Printf("Write %d bytes.", b)
 		}
 	}()
 }
