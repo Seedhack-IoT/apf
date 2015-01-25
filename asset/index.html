@@ -12,31 +12,38 @@
         <link href="css/bootstrap.min.css" rel="stylesheet">
         <link href="css/loading-bar.min.css" rel="stylesheet">
         <link href="css/pnotify.custom.min.css" rel="stylesheet">
+        <link href="css/css.css" rel="stylesheet">
     </head>
     <body ng-controller="MainCtrl">
     <div class="container">
-        <!-- <div class="row" ng-show="loggedIn">
+        <div class="row" ng-show="loggedIn">
             <button class="btn btn-default" ng-click="addTest(0)">Add 1</button>
             <button class="btn btn-default" ng-click="addTest(1)">Add 2</button>
             <button class="btn btn-default" ng-click="addTest(2)">Add 3</button>
             <button class="btn btn-default" ng-click="updateTest(0)">edit 1</button>
             <button class="btn btn-default" ng-click="updateTest(1)">edit 2</button>
             <button class="btn btn-default" ng-click="updateTest(2)">edit 3</button>
-        </div> -->
-        <div class="row" id="freewall" ng-show="loggedIn">
-            <div ng-repeat="(uuid, device) in devices">
-              <div ng-repeat="action in device.actions">
-                {{action}}
-              </div>
-                <div ng-repeat="s in device.sensors">
-                    <div class='cell' style='width:300px; height: 300px; background-color:rgb(142, 68, 173)' data-handle=".handle">
+            <button class="btn btn-default" ng-click="changeDeviceStatus('blebleble',true)">Activate 2</button>
+            <button class="btn btn-default" ng-click="changeDeviceStatus('blebleble',false)">Deactivate 2</button>
+        </div>
+        <div class="row" ng-show="loggedIn">
+            <div class="device col-md-12" ng-repeat="(uuid, device) in devices">
+            <h1>{{device.name}}</h1>
+                <div class="row">
+                    <div class="sensor col-md-3" ng-class="{'inactive-stuff':!device.active}" ng-repeat="s in device.sensors">
                         <div class='cover'>
                             <h1 class='handle'>{{s.name}}</h1>
                             <small am-time-ago="s.valueTime"></small>
-                            <p class='handle'>{{s.value}}</p>
+                            <p class='handle'>{{s.valu}}</p>
                         </div>
                     </div>
-                </div>
+                    <div class="action col-md-3" ng-class="{'inactive-stuff':!device.active}" ng-repeat="a in device.actions">
+                        <div class='cover'>
+                            <h1 class='handle'>{{a}}</h1>
+                            <button class="btn btn-sm btn-danger" ng-disabled="!device.active" ng-click="doAction(device, a)">Activate</button>
+                        </div>
+                    </div>
+                </div>  
             </div>
         </div>
 

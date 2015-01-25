@@ -31,30 +31,45 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 	$scope.devices = {};
 	$scope.login = function(){
 		socket.emit("auth", $scope.username, $scope.password);
-
 	}
 
 	$scope.addDevice = function(device){
-		var found = $scope.devices.some(function (el) {
-		    return el.uuid === device.uuid;
-		  });
-		if (!found)
-			$scope.devices.push(device);
+		if(!$scope.devices.hasOwnProperty(device["uuid"])){
+			$scope.devices[device["uuid"]]=device;
+		}
+		// var found = $scope.devices.some(function (el) {
+		//     return el.uuid === device.uuid;
+		//   });
+		// if (!found)
+		// 	$scope.devices.push(device);
 		$timeout(function(){
 			wall.refresh();
 		});
 	}
 
-	$scope.updateDevice = function(update){
-		var val = $.grep( $scope.devices, function( el ) {
-		    return el.uuid===update.uuid;
-		});
-		if (val.length==1){
-			val[0].sensors[update["name"]].value=update.value;
-			val[0].sensors[update["name"]].valueTime=new Date();
-			// val[0]["valueTime"]=new Date();
-			// val[0]["value"]=update.value;
-		}
+	$scope.changeDeviceStatus = function(uuid, active){
+		$scope.devices[uuid].active=active;
+	}
+
+	$scope.updateDevice = function(uuid, sensor, data){
+		console.log("event:sensor_reading", uuid, sensor, data);
+		console.log($scope.devices);
+		$scope.devices[uuid].sensors[sensor].valu = data;
+		$scope.devices[uuid].sensors[sensor].valueTime = new Date();
+		// var val = $.grep( $scope.devices, function( el ) {
+		//     return el.uuid===update.uuid;
+		// });
+		// if (val.length==1){
+		// 	val[0].sensors[update["name"]].value=update.value;
+		// 	val[0].sensors[update["name"]].valueTime=new Date();
+		// 	// val[0]["valueTime"]=new Date();
+		// 	// val[0]["value"]=update.value;
+		// }
+	}
+
+	$scope.doAction = function(device, action){
+		socket.emit("action",device.uuid, action);
+		notificationService.success('Action <b>'+action+'</b> transmitted');
 	}
 
 	socket.on("device_data", function(device) {
@@ -77,38 +92,51 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 	socket.on("conditional_added", function(success) {
 		console.log("event:conditional_added", success);
 	})
-	// $scope.addTest = function(i){
+	$scope.addTest = function(i){
 
-	// 	var senses=[
-	// 	{
-	// 		"name":"One sensor",
-	// 		"uuid":"blablabla"
-	// 	},{
-	// 		"name":"Two sensor",
-	// 		"uuid":"blebleble"
-	// 	},{
-	// 		"name":"Green tree sensor",
-	// 		"uuid":"bliblibli"
-	// 	}
-	// 	];
-	// 	$scope.addSensor(senses[i]);3
-	// }
+		var devices=[
+		{
+			"name":"One device",
+			"uuid":"blablabla",
+			"sensors": {"pressure":{"name":"sensor 1"},"temp":{"name":"sensor 2"}},
+			"actions": ["actiunea 1", "actiunea 2"],
+			"active":true
+		},{
+			"name":"Two device",
+			"uuid":"blebleble",
+			"sensors": {"sensor 3":{"name":"sensor 3"},"sensor 4":{"name":"sensor 4"}},
+			"actions": ["actiunea 6", "actiunea 5"],
+			"active":true
 
-	// $scope.updateTest = function(i){
-	// 	var updates=[
-	// 	{
-	// 		"uuid":"blablabla",
-	// 		"value":Math.random()*102933214
-	// 	},{
-	// 		"uuid":"blebleble",
-	// 		"value":Math.random()*102933214
-	// 	},{
-	// 		"uuid":"bliblibli",
-	// 		"value":Math.random()*102933214
-	// 	}];
-	// 	$scope.updateSensor(updates[i]);
+		},{
+			"name":"Green tree device",
+			"uuid":"bliblibli",
+			"sensors": {"sensor 5":{"name":"sensor 5"},"sensor 6":{"name":"sensor 6"}},
+			"actions": ["actiunea 1", "actiunea 2"],
+			"active":true
+		}
+		];
+		$scope.addDevice(devices[i]);
+	}
 
-	// }
+	$scope.updateTest = function(i){
+		var updates=[
+		{
+			"uuid":"blablabla",
+			"sensor":"pressure",
+			"data":Math.random()*102933214
+		},{
+			"uuid":"blebleble",
+			"sensor":"sensor 4",
+			"data":Math.random()*102933214
+		},{
+			"uuid":"bliblibli",
+			"sensor":"sensor 5",
+			"data":Math.random()*102933214
+		}];
+		$scope.updateDevice(updates[i]["uuid"],updates[i]["sensor"],updates[i]["data"]);
+
+	}
 
 	$scope.rainbow = function(step) {
 	var numOfSteps = 50;
@@ -187,7 +215,7 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 
 var wall = new freewall("#freewall");
 wall.reset({
-	draggable: true,
+	draggable: false,
 	selector: '.cell',
 	animate: true,
 	cellW: 150,
