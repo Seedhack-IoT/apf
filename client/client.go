@@ -117,7 +117,6 @@ func main() {
 	go func() {
 		for {
 			line, err := readChannel.ReadString('\n')
-			log.Printf("Received %d data.", len(line))
 			if err != nil {
 				log.Printf("Error reading from channel: %s", err)
 				break
@@ -135,6 +134,5 @@ func main() {
 		if err != nil {
 			log.Printf("Error writing on channel (%s).", err)
 		}
-		log.Printf("Wrote %d bytes.", b)
 	}
 }

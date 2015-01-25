@@ -2,14 +2,14 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"strings"
+
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -150,10 +150,6 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 			req.Reply(false, nil)
 		}
 	}(requests)
-	_, err := channel.Write([]byte("this is some data i'm sending"))
-	if err != nil {
-		fmt.Println("Error sending data", err)
-	}
 	reader := bufio.NewReader(channel)
 	go func() {
 		defer channel.Close()
@@ -167,13 +163,14 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 	}()
 
 	// send big chunk of data
-	buf := new(bytes.Buffer)
-	for i := 0; i < 5000; i++ {
-		buf.WriteString("1234567890abcdefghijklmnopqrstuvwxyz")
-	}
-	n, err := channel.Write(buf.Bytes())
-	log.Printf("Wrote %d bytes with error %s.", n, err)
-
+	/*
+		buf := new(bytes.Buffer)
+		for i := 0; i < 5000; i++ {
+			buf.WriteString("1234567890abcdefghijklmnopqrstuvwxyz")
+		}
+		n, err := channel.Write(buf.Bytes())
+		log.Printf("Wrote %d bytes with error %s.", n, err)
+	*/
 	termR := bufio.NewReader(os.Stdin)
 	go func() {
 		for {
