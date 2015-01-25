@@ -25,64 +25,67 @@ var app = angular.module('App', [
 var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter, socket, notificationService) {
 
 	$scope.loggedIn = true;
-	$scope.sensors = [];
+	$scope.devices = [];
 	$scope.login = function(){
 		socket.emit("auth", $scope.username, $scope.password);
 
 	}
 
-	$scope.addSensor = function(sensor){
-		var found = $scope.sensors.some(function (el) {
-		    return el.uuid === sensor.uuid;
+	$scope.addDefice = function(device){
+		var found = $scope.devices.some(function (el) {
+		    return el.uuid === device.uuid;
 		  });
 		if (!found)
-			$scope.sensors.push(sensor);
+			$scope.devices.push(device);
 		$timeout(function(){
 			wall.refresh();
 		});
 	}
 
-	$scope.updateSensor = function(update){
-		var val = $.grep( $scope.sensors, function( el ) {
+	$scope.updateDevice = function(update){
+		var val = $.grep( $scope.devices, function( el ) {
 		    return el.uuid===update.uuid;
 		});
 		if (val.length==1){
-			val[0]["valueTime"]=new Date();
-			val[0]["value"]=update.value;
+			val[0].sensors[update["name"]].value=update.value;
+			val[0].sensors[update["name"]].valueTime=new Date();
+			// val[0]["valueTime"]=new Date();
+			// val[0]["value"]=update.value;
 		}
 	}
 
-	$scope.addTest = function(i){
-		var senses=[
-		{
-			"name":"One sensor",
-			"uuid":"blablabla"
-		},{
-			"name":"Two sensor",
-			"uuid":"blebleble"
-		},{
-			"name":"Green tree sensor",
-			"uuid":"bliblibli"
-		}
-		];
-		$scope.addSensor(senses[i]);
-	}
+	// $scope.addTest = function(i){
 
-	$scope.updateTest = function(i){
-		var updates=[
-		{
-			"uuid":"blablabla",
-			"value":Math.random()*102933214
-		},{
-			"uuid":"blebleble",
-			"value":Math.random()*102933214
-		},{
-			"uuid":"bliblibli",
-			"value":Math.random()*102933214
-		}];
-		$scope.updateSensor(updates[i]);
+	// 	var senses=[
+	// 	{
+	// 		"name":"One sensor",
+	// 		"uuid":"blablabla"
+	// 	},{
+	// 		"name":"Two sensor",
+	// 		"uuid":"blebleble"
+	// 	},{
+	// 		"name":"Green tree sensor",
+	// 		"uuid":"bliblibli"
+	// 	}
+	// 	];
+	// 	$scope.addSensor(senses[i]);3
+	// }
 
-	}
+	// $scope.updateTest = function(i){
+	// 	var updates=[
+	// 	{
+	// 		"uuid":"blablabla",
+	// 		"value":Math.random()*102933214
+	// 	},{
+	// 		"uuid":"blebleble",
+	// 		"value":Math.random()*102933214
+	// 	},{
+	// 		"uuid":"bliblibli",
+	// 		"value":Math.random()*102933214
+	// 	}];
+	// 	$scope.updateSensor(updates[i]);
+
+	// }
 
 	$scope.rainbow = function(step) {
 	var numOfSteps = 50;	
