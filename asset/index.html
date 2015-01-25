@@ -24,8 +24,11 @@
             <button class="btn btn-default" ng-click="updateTest(2)">edit 3</button>
         </div> -->
         <div class="row" id="freewall" ng-show="loggedIn">
-            <div ng-repeat="d in devices">
-                <div ng-repeat="s in d.sensors">
+            <div ng-repeat="(uuid, device) in devices">
+              <div ng-repeat="action in device.actions">
+                {{action}}
+              </div>
+                <div ng-repeat="s in device.sensors">
                     <div class='cell' style='width:300px; height: 300px; background-color:rgb(142, 68, 173)' data-handle=".handle">
                         <div class='cover'>
                             <h1 class='handle'>{{s.name}}</h1>
@@ -67,4 +70,4 @@
     <script type="text/javascript" src="js/socket.min.js"></script>
     <script type="text/javascript" src="js/js.js"></script>
     </body>
-</html>	
+</html>

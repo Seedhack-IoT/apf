@@ -24,14 +24,14 @@ var app = angular.module('App', [
 
 var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter, socket, notificationService) {
 
-	$scope.loggedIn = true;
-	$scope.devices = [];
+	$scope.loggedIn = false;
+	$scope.devices = {};
 	$scope.login = function(){
 		socket.emit("auth", $scope.username, $scope.password);
 
 	}
 
-	$scope.addDefice = function(device){
+	$scope.addDevice = function(device){
 		var found = $scope.devices.some(function (el) {
 		    return el.uuid === device.uuid;
 		  });
@@ -56,6 +56,7 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 
 	socket.on("device_data", function(device) {
 		console.log("event:device_data", device);
+		$scope.devices[device.uuid] = device;
 	});
 
 	socket.on("sensor_reading", function(uuid, sensor, data) {
