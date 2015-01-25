@@ -31,7 +31,28 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 
 	}
 
-	$scope.add = function(i){
+	$scope.addSensor = function(sensor){
+		var found = $scope.sensors.some(function (el) {
+		    return el.uuid === sensor.uuid;
+		  });
+		if (!found)
+			$scope.sensors.push(sensor);
+		$timeout(function(){
+			wall.refresh();
+		});
+	}
+
+	$scope.updateSensor = function(update){
+		var val = $.grep( $scope.sensors, function( el ) {
+		    return el.uuid===update.uuid;
+		});
+		if (val.length==1){
+			val[0]["valueTime"]=new Date();
+			val[0]["value"]=update.value;
+		}
+	}
+
+	$scope.addTest = function(i){
 		var senses=[
 		{
 			"title":"One sensor",
@@ -44,18 +65,10 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 			"uuid":"bliblibli"
 		}
 		];
-
-		var found = $scope.sensors.some(function (el) {
-		    return el.uuid === senses[i].uuid;
-		  });
-		if (!found)
-			$scope.sensors.push(senses[i]);
-		$timeout(function(){
-			wall.refresh();
-		});
+		$scope.addSensor(senses[i]);
 	}
 
-	$scope.update = function(i){
+	$scope.updateTest = function(i){
 		var updates=[
 		{
 			"uuid":"blablabla",
@@ -67,14 +80,7 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 			"uuid":"bliblibli",
 			"value":Math.random()*102933214
 		}];
-
-		var val = $.grep( $scope.sensors, function( el ) {
-		    return el.uuid===updates[i].uuid;
-		});
-		if (val.length==1){
-			val[0]["valueTime"]=new Date();
-			val[0]["value"]=updates[i].value;
-		}
+		$scope.updateSensor(updates[i]);
 
 	}
 	socket.on("authentication", function(yes) {

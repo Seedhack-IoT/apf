@@ -16,12 +16,12 @@
     <body ng-controller="MainCtrl">
     <div class="container">
         <div class="row" ng-show="loggedIn">
-            <button class="btn btn-default" ng-click="add(0)">Add 1</button>
-            <button class="btn btn-default" ng-click="add(1)">Add 2</button>
-            <button class="btn btn-default" ng-click="add(2)">Add 3</button>
-            <button class="btn btn-default" ng-click="update(0)">edit 1</button>
-            <button class="btn btn-default" ng-click="update(1)">edit 2</button>
-            <button class="btn btn-default" ng-click="update(2)">edit 3</button>
+            <button class="btn btn-default" ng-click="addTest(0)">Add 1</button>
+            <button class="btn btn-default" ng-click="addTest(1)">Add 2</button>
+            <button class="btn btn-default" ng-click="addTest(2)">Add 3</button>
+            <button class="btn btn-default" ng-click="updateTest(0)">edit 1</button>
+            <button class="btn btn-default" ng-click="updateTest(1)">edit 2</button>
+            <button class="btn btn-default" ng-click="updateTest(2)">edit 3</button>
         </div>
         <div class="row" id="freewall" ng-show="loggedIn">
             <div ng-repeat="s in sensors">
