@@ -54,6 +54,25 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 		}
 	}
 
+	socket.on("device_data", function(device) {
+		console.log("event:device_data", device);
+	});
+
+	socket.on("sensor_reading", function(uuid, sensor, data) {
+		console.log("event:sensor_reading", uuid, sensor, data);
+	});
+
+	socket.on("device_offline", function(uuid) {
+		console.log("event:device_offline", uuid);
+	});
+
+	$scope.addConditional = function(device, sensor, value, actuator, action) {
+		socket.emit("add_conditional", device, sensor, value, actuator, action);
+	}
+
+	socket.on("conditional_added", function(success) {
+		console.log("event:conditional_added", success);
+	})
 	// $scope.addTest = function(i){
 
 	// 	var senses=[
@@ -88,7 +107,7 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 	// }
 
 	$scope.rainbow = function(step) {
-	var numOfSteps = 50;	
+	var numOfSteps = 50;
     // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
     // Adam Cole, 2011-Sept-14
     // HSV to RBG adapted from: http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
@@ -109,6 +128,7 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
     return ("{width:300px; height: 300px; background-color:'"+c+"'}");
 }
 	socket.on("authentication", function(yes) {
+		console.log("event:authentication", yes)
 /*		notificationService.notify({
 			title: 'Some asshole wants to connect to our awesome system',
 			text: 'Are you sure?',
