@@ -67,8 +67,8 @@ type cond struct {
 }
 
 type Sensor struct {
-	Name     string
-	Readings []string
+	Name     string   `json:"name"`
+	Readings []string `json:"readings"`
 
 	conditional []*cond `json:"-"`
 }

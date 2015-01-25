@@ -25,8 +25,28 @@ var app = angular.module('App', [
 
 var hack;
 
-var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter, socket, notificationService) {
+var secondCtrl = app.controller('secondCtrl', function($scope, socket, notificationService) {
+	$scope.addConditional = function(device, sensor, value, actuator, action) {
+		socket.emit("add_conditional", device, sensor, value, actuator, action);
+	}
 
+	$scope.SaveIt = function(model) {
+		$scope.addConditional(model.device, model.sensor, model.value, model.actuator, model.action);
+		$scope.active=false;
+	}
+	$scope.mdl = {};
+	$scope.active = false;
+	$scope.toggle = function() { $scope.active = !$scope.active; };
+	$scope.dbg = function(arg) {
+		if (arg !== undefined) {
+			$scope.mdl.actions = $scope.$parent.devices[arg].actions;
+			console.log($scope.mdl.actions);
+		}
+	};
+})
+
+var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter, socket, notificationService) {
+	socket.emit("auth", "river", "thisisme");
 	hack = socket;
 	$scope.loggedIn = true;
 	$scope.devices = {};
@@ -62,7 +82,11 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 	$scope.updateDevice = function(uuid, sensor, data){
 		console.log("event:sensor_reading", uuid, sensor, data);
 		console.log($scope.devices);
-		$scope.devices[uuid].sensors[sensor].value = data;
+		var s = $scope.devices[uuid].sensors[sensor];
+		if (s === undefined) {
+			$scope.devices[uuid].sensors[sensor] = {name:"sensor", value: data, valueTime: new Date()};
+		}
+
 		$scope.devices[uuid].sensors[sensor].valueTime = new Date();
 		// var val = $.grep( $scope.devices, function( el ) {
 		//     return el.uuid===update.uuid;
@@ -87,6 +111,10 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 
 	socket.on("sensor_reading", function(uuid, sensor, data) {
 		console.log("event:sensor_reading", uuid, sensor, data);
+		if (sensor == "camera") {
+			var win = window.open("data:image/gif;base64,"+data, '_blank');
+			win.focus();
+		}
 		$scope.updateDevice(uuid,sensor,data);
 	});
 
@@ -101,6 +129,7 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 
 	socket.on("conditional_added", function(success) {
 		console.log("event:conditional_added", success);
+		notificationService.success('If this than than added.');
 	})
 	$scope.addTest = function(i){
 
@@ -222,4 +251,3 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 	});
 
 })
-
