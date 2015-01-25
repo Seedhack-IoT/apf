@@ -21,9 +21,23 @@ var app = angular.module('App', [
 var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter, socket, notificationService) {
 
 	$scope.loggedIn = false;
+	$scope.sensors = [];
 	$scope.login = function(){
 		socket.emit("auth", $scope.username, $scope.password);
 
+	}
+
+	$scope.add = function(){
+		var sens={
+			"title":"One sensor",
+			"uuid":"blablabla"
+		}
+
+		var found = $scope.sensors.some(function (sens) {
+		    return el.uuid === uuid;
+		  });
+		if (!found)
+			$scope.sensors.push(sens);
 	}
 	socket.on("authentication", function(yes) {
 /*		notificationService.notify({
