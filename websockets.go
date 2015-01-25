@@ -80,6 +80,39 @@ func StartHTTP(address string) {
 			}
 			answerBinaryQuestion(id, answer)
 		})
+
+		so.On("add_conditional", func(device, sensor, value, actuator, action string) {
+			if auth == false {
+				log.Println("Not authenticated for conditional")
+				so.Emit("conditional_added", false)
+				return
+			}
+			d := GetDevice(device)
+			if d == nil {
+				log.Println("Device %s not found for conditional", device)
+				so.Emit("conditional_added", false)
+				return
+			}
+			if s, ok := d.Sensors[sensor]; ok {
+				s.addConditional(value, actuator, action)
+				so.Emit("conditional_added", true)
+				log.Println("Conditional added.")
+				return
+			}
+			so.Emit("conditional_added", false)
+			log.Println("Sensor %s not found for conditional", sensor)
+		})
+
+		so.On("action", func(uuid, action string) {
+			if !auth {
+				return
+			}
+			d := GetDevice(uuid)
+			if d == nil {
+				return
+			}
+			d.Action(action)
+		})
 	})
 
 	ioServer.On("error", func(so socketio.Socket, err error) {
