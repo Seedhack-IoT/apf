@@ -42,9 +42,6 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 		//   });
 		// if (!found)
 		// 	$scope.devices.push(device);
-		$timeout(function(){
-			wall.refresh();
-		});
 	}
 
 	$scope.changeDeviceStatus = function(uuid, active){
@@ -79,10 +76,12 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 
 	socket.on("sensor_reading", function(uuid, sensor, data) {
 		console.log("event:sensor_reading", uuid, sensor, data);
+		$scope.updateDevice(uuid,sensor,data);
 	});
 
 	socket.on("device_offline", function(uuid) {
 		console.log("event:device_offline", uuid);
+		$scope.changeDeviceStatus(uuid,false);
 	});
 
 	$scope.addConditional = function(device, sensor, value, actuator, action) {
@@ -213,20 +212,3 @@ var ctrl = app.controller('MainCtrl', function($scope, $http, $timeout, $filter,
 
 })
 
-var wall = new freewall("#freewall");
-wall.reset({
-	draggable: false,
-	selector: '.cell',
-	animate: true,
-	cellW: 150,
-	cellH: 150,
-	onResize: function() {
-		wall.refresh();
-	},
-	onBlockMove: function() {
-		console.log(this);
-	}
-});
-wall.fitWidth();
-// for scroll bar appear;
-$(window).trigger("resize");
