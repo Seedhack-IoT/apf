@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -150,7 +151,7 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request, user strin
 			}
 			// do some request routing
 			req := make(map[string]interface{})
-			err = json.Unmarshal(&req, []byte(line))
+			err = json.Unmarshal([]byte(line), &req)
 			if err != nil {
 				log.Printf("Cannot unmarshal json on request.")
 				continue
@@ -161,7 +162,7 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request, user strin
 				case "client":
 					device.Name = req["name"].(string)
 					device.Actions = req["actions"].([]string)
-					device.Sensors = req["sensors"].([]string)
+					device.Sensors = req["actions"].(map[string]*Sensor)
 				case "reading":
 				case "whatever":
 				}

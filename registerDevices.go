@@ -30,7 +30,7 @@ func (d *Device) SetOffline() {
 
 func (d *Device) AddReading(sensor string, data interface{}) {
 	if s, ok := d.Sensors[sensor]; ok {
-		d.Sensor[sensor].Readings = append(s.Readings, data)
+		d.Sensors[sensor].Readings = append(s.Readings, data)
 	}
 }
 
