@@ -2,14 +2,14 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"strings"
-
-	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -55,7 +55,7 @@ func StartSSH(address string) {
 				//					return nil, nil
 				//				}
 			}
-			fmt.Printf("Access denied for user %s\n", user)
+			log.Printf("Access denied for user %s\n", user)
 			// otherwise reject
 			return nil, fmt.Errorf("Access denied.")
 		},
@@ -120,6 +120,7 @@ func handleChannels(chans <-chan ssh.NewChannel) {
 	// Service the incoming Channel channel.
 	for newChannel := range chans {
 		if t := newChannel.ChannelType(); t == "session" {
+			log.Printf("Accepting a session channel")
 			// for shell debugging
 			channel, requests, err := newChannel.Accept()
 			if err != nil {
@@ -154,6 +155,25 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 		fmt.Println("Error sending data", err)
 	}
 	reader := bufio.NewReader(channel)
+	go func() {
+		defer channel.Close()
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				break
+			}
+			fmt.Printf("INPUT: %s\n", line)
+		}
+	}()
+
+	// send big chunk of data
+	buf := new(bytes.Buffer)
+	for i := 0; i < 5000; i++ {
+		buf.WriteString("1234567890abcdefghijklmnopqrstuvwxyz")
+	}
+	n, err := channel.Write(buf.Bytes())
+	log.Printf("Wrote %d bytes with error %s.", n, err)
+
 	termR := bufio.NewReader(os.Stdin)
 	go func() {
 		for {
@@ -169,17 +189,6 @@ func customChannel(channel ssh.Channel, requests <-chan *ssh.Request) {
 			}
 		}
 	}()
-	go func() {
-		defer channel.Close()
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				break
-			}
-			fmt.Printf("INPUT: %s\n", line)
-		}
-	}()
-
 }
 
 // in this function we have an SSH connection.

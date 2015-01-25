@@ -46,6 +46,8 @@ function init() {
     return false;
   });
 
+  socket.emit("auth", "river", "thisisme");
+
 };
 
 window.addEventListener("load", init);
