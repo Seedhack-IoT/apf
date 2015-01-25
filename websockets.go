@@ -51,7 +51,6 @@ func revokeBinaryQuestion(id int) {
 }
 
 func StartHTTP(address string) {
-
 	ioServer.On("connection", func(so socketio.Socket) {
 		log.Println("New connection.")
 		auth := false

@@ -45,9 +45,6 @@ function init() {
     loginScreen.css('border', '0 none');
     return false;
   });
-
-  socket.emit("auth", "river", "thisisme");
-
 };
 
 window.addEventListener("load", init);
